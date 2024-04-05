@@ -17,7 +17,7 @@ Follow the install instructions for that instead, and enable it in the `White's 
 2. Run the game once. This will create required folders.
 3. Download the **Mono** version of [Melon Preferences Manager](https://github.com/Bluscream/MelonPreferencesManager/releases/latest), and put the .DLLs from that zip into the `Mods` folder of your Neon White install.
     - The preferences manager **is required** to use YourStory, using the options menu to enable the mod (F5 by default).
-4. Download `.dll` from the [Releases page](https://github.com/stxticOVFL/NeonCapture/releases/latest) and drop it in the `Mods` folder.
+4. Download `YourStory.dll` from the [Releases page](https://github.com/stxticOVFL/NeonCapture/releases/latest) and drop it in the `Mods` folder.
 
 ## Building & Contributing
 This project uses Visual Studio 2022 as its project manager. When opening the Visual Studio solution, ensure your references are corrected by right clicking and selecting `Add Reference...` as shown below. 
