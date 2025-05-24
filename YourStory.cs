@@ -9,58 +9,88 @@ using TMPro;
 using UnityEngine;
 using HarmonyLib;
 using UnityEngine.SceneManagement;
+using NeonLite.Modules;
+using NeonLite;
 
 namespace YourStory
 {
     [HarmonyPatch]
-    public class YourStory : MelonMod
+    public class YourStory : MelonMod, IModule
     {
+        const bool priority = true;
+        static bool active = true;
+
+        public override void OnInitializeMelon()
+        {
+            NeonLite.NeonLite.LoadModules(MelonAssembly);
+        }
+
         static GameObject asset;
-        static Transform newBackstory;
+        static AssetBundleCreateRequest bundleLoad;
+
+        static bool dirty = false;
+
         public override void OnLateInitializeMelon()
         {
-            AssetBundle bundle = AssetBundle.LoadFromMemory(Resources.Resources.AssetBundle);
-            asset = bundle.LoadAsset<GameObject>("Assets/YourStory.prefab");
+            bundleLoad = AssetBundle.LoadFromMemoryAsync(Resources.Resources.AssetBundle);
+            bundleLoad.completed += OnBundleLoaded;
+        }
+
+        private void OnBundleLoaded(AsyncOperation obj)
+        {
+            asset = UnityEngine.Object.Instantiate(bundleLoad.assetBundle.LoadAsset<GameObject>("Assets/YourStory.prefab"));
+            asset.name = "YourStory";
+            asset.gameObject.SetActive(false);
+            UnityEngine.Object.DontDestroyOnLoad(asset);
+            SetupAsset();
+        }
+
+        static void SetupAsset()
+        {
+            var scaler = asset.transform.GetChild(0);
+
+            void SetText(int id, string text)
+            {
+                var t = scaler.GetChild(id).GetComponent<TextMeshPro>();
+                t.text = text;
+                t.color = Settings.UsedColor.Value;
+            }
+
+            SetText(0, Settings.Year.Value);
+            SetText(1, Settings.NeonName.Value);
+            SetText(2, Settings.Title.Value);
+            SetText(3, Settings.Description.Value);
+            SetText(4, Settings.Deserves.Value);
+            SetText(5, Settings.Job.Value);
+            SetText(6, Settings.Sins.Value);
+
+            dirty = false;
+        }
+
+        public static void Setup()
+        {
             Settings.Register();
+            Settings.Enabled.SetupForModule(Activate, static (_, after) => after);
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(MainMenu), "SetState")]
-        public static void SetState(ref MainMenu.State newState)
-        {
-            if (Settings.Enabled.Value && newState == MainMenu.State.Staging)
-            {
-                var ogBackstory = RM.ui.portraitUI.transform.parent.Find("Backstory");
-                ogBackstory.GetChild(0).gameObject.SetActive(false);
-                newBackstory = Utils.InstantiateUI(asset, "YourStory", ogBackstory).transform;
-                newBackstory.position = ogBackstory.GetChild(0).transform.position;
-                newBackstory.localScale = ogBackstory.GetChild(0).transform.localScale;
-            }
-            else
-                newBackstory = null;
-        }
+        static void Activate(bool activate) => active = activate;
 
-        public override void OnUpdate()
+        public static void OnLevelLoad(LevelData level)
         {
-            if (newBackstory && Settings.Enabled.Value)
-            {
-                var scaler = newBackstory.GetChild(0);
-                scaler.GetChild(0).GetComponent<TextMeshPro>().text = Settings.Year.Value;
-                scaler.GetChild(1).GetComponent<TextMeshPro>().text = Settings.NeonName.Value;
-                scaler.GetChild(2).GetComponent<TextMeshPro>().text = Settings.Title.Value;
-                scaler.GetChild(3).GetComponent<TextMeshPro>().text = Settings.Description.Value;
-                scaler.GetChild(4).GetComponent<TextMeshPro>().text = Settings.Deserves.Value;
-                scaler.GetChild(5).GetComponent<TextMeshPro>().text = Settings.Job.Value;
-                scaler.GetChild(6).GetComponent<TextMeshPro>().text = Settings.Sins.Value;
+            if (!level || level.type == LevelData.LevelType.Hub)
+                return;
 
-                scaler.GetChild(0).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-                scaler.GetChild(1).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-                scaler.GetChild(2).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-                scaler.GetChild(3).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-                scaler.GetChild(4).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-                scaler.GetChild(5).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-                scaler.GetChild(6).GetComponent<TextMeshPro>().color = Settings.UsedColor.Value;
-            }
+            var ogBackstory = RM.ui.portraitUI.transform.parent.Find("Backstory");
+            var child0 = ogBackstory.GetChild(0);
+            child0.gameObject.SetActive(false);
+
+            if (dirty)
+                SetupAsset();
+
+            var newBackstory = Utils.InstantiateUI(asset, "YourStory", ogBackstory).transform;
+            newBackstory.position = child0.position;
+            newBackstory.localScale = child0.localScale;
+            newBackstory.gameObject.SetActive(true);
         }
 
         public static class Settings
@@ -110,6 +140,15 @@ namespace YourStory
                 sin / IDENTITY
                 sin / MEMORY
                 """);
+
+                UsedColor.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                Year.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                NeonName.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                Title.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                Description.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                Deserves.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                Job.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
+                Sins.OnEntryValueChanged.Subscribe((_, _) => dirty = true);
             }
         }
     }
