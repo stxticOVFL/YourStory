@@ -20,14 +20,7 @@ Follow the install instructions for that instead, and enable it in the `White's 
 4. Download `YourStory.dll` from the [Releases page](https://github.com/stxticOVFL/YourStory/releases/latest) and drop it in the `Mods` folder.
 
 ## Building & Contributing
-This project uses Visual Studio 2022 as its project manager. When opening the Visual Studio solution, ensure your references are corrected by right clicking and selecting `Add Reference...` as shown below. 
-Most will be in `Neon White_data/Managed`. Some will be in `MelonLoader/net35`, **not** `net6`. Select the `MelonPrefManager` mods for that reference. 
-If you get any weird errors, try deleting the references and re-adding them manually.
+This project is based on [**NWCommon.**](https://github.com/stxticOVFL/NWCommon/tree/master?tab=readme-ov-file) 
+Follow the build instructions on the repository.
 
-![image](https://github.com/stxticOVFL/NeonCapture/assets/29069561/67c946de-2099-458d-8dec-44e81883e613)
-
-Once your references are correct, build using the keybind or like the picture below.
-
-![image](https://github.com/stxticOVFL/EventTracker/assets/29069561/40a50e46-5fc2-4acc-a3c9-4d4edb8c7d83)
-
-Make any edits as needed, and make a PR for review. PRs are very appreciated.
+Make any edits as needed, and make a PR for review. PRs are very appreciated!
